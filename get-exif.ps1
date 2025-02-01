@@ -1,16 +1,19 @@
 # Get-Exif, version 5.1 01.02.2025
 
-# This is an experiment aimed at demonstrating the use value of AI generated code.
-# The tool used was GitHub Copilot, a VS Code extension that uses OpenAI's GPT-3 
-# model to generate code.
+# This is a utility which is used to browse GPS values in the EXIF metadata
+# of JPEG files.
+
+# It is also an experiment aimed at testing and demonstrating the use value of 
+# AI generated code.
+
+# The tool was partly generated GitHub Copilot, a VS Code extension that uses 
+# OpenAI's GPT-3 model to generate code. 
 
 # The developing assistant managed to generate a script that reads EXIF data from 
 # JPEG image file). The objective was, however, to extract GPS data from the file 
 # and copilot didn't manage to achieve that aim. 
 
-# The aim was achived by reading EXIF documetation published by Microsoft and 
-# the Camera and Imaging Products Association (CIPA).
-
+# The aim was achived by reading EXIF documetation published by Microsoft.
 # Also browsed a couple of articles touching upon the topic. 
 # This article was particularly helpful:
 
@@ -20,7 +23,7 @@
 # Updates:
 
 # Version 2 
-# Clean up the code comment lightly
+# Clean up the code and comment it lightly
 
 # Version 3
 # Retrieve EXIF and GPS version information
@@ -32,6 +35,9 @@
 # Version 5
 # Add GPSSatellites and GPSImgDirection to the return object
 # Add an error message if user declines to select a file
+# Improve documentation.
+
+# ---------------------------------------------------------------------------
 
 # Load the required image processing assembly
 Add-Type -AssemblyName System.Drawing
@@ -50,7 +56,6 @@ function ConvertToDecimal {
     return $decimal
 }
 
-# Copilot generated code with some modifications and additions by phdonner:
 # Function to get EXIF data
 function Get-ExifData 
     {
@@ -178,11 +183,9 @@ Function Get-File
     return $filenames
     }
 
-############################################################################################################
-# The main script
+# Our test case
 
-# Wish list: 
-# Adapt to cater for command line and cross-platform use
+# $filePath = "C:\Users\pdonner\Pictures\geotagged_photo\geotag_oskar.jpg"
 
 $Path = Get-File -Title 'Seöect JPEG file' -Filter 'JPEG files (*.jpg)|*.jpg' 
 
