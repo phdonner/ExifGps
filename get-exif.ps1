@@ -1,15 +1,16 @@
-# Get-Exif, version 4 30.01.2025
+# Get-Exif, version 5.1 01.02.2025
 
 # This is an experiment aimed at demonstrating the use value of AI generated code.
 # The tool used was GitHub Copilot, a VS Code extension that uses OpenAI's GPT-3 
 # model to generate code.
 
-# The developer assistant managed to generate a script that reads EXIF data from 
-# JPEG image file).
-# The objective was, however, to extract GPS data from the file and copilot didn't
-# manage to achieve that. 
+# The developing assistant managed to generate a script that reads EXIF data from 
+# JPEG image file). The objective was, however, to extract GPS data from the file 
+# and copilot didn't manage to achieve that aim. 
 
-# The aim was achived by reading EXIF documetation published by Microsoft.
+# The aim was achived by reading EXIF documetation published by Microsoft and 
+# the Camera and Imaging Products Association (CIPA).
+
 # Also browsed a couple of articles touching upon the topic. 
 # This article was particularly helpful:
 
@@ -35,6 +36,7 @@
 # Load the required image processing assembly
 Add-Type -AssemblyName System.Drawing
 
+# Copilot generated code:
 # Function to convert GPS coordinates to decimal
 function ConvertToDecimal {
     param (
@@ -48,18 +50,18 @@ function ConvertToDecimal {
     return $decimal
 }
 
+# Copilot generated code with some modifications and additions by phdonner:
 # Function to get EXIF data
 function Get-ExifData 
     {
-    param ([string]$filePath)
+    param ([string]$Path)
 
-    $image = [System.Drawing.Image]::FromFile($filePath)
+    $image = [System.Drawing.Image]::FromFile($Path)
     $propertyItems = $image.PropertyItems
 
-    Write-Host "`nEXIF GPS coordinates in $($filepath):`n"
+    Write-Host "`nEXIF GPS coordinates in $($Path):`n"
 
     # Initialize the EXIF data object to be returned
-    # Was: $exifData = @{}
     $exifData = [Ordered]@{}
 
     foreach ($property in $propertyItems) 
@@ -79,9 +81,9 @@ function Get-ExifData
             0x9003 { $exifData.DateTaken = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             0x0008 { $exifData.GPSSatellites = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }             
             0x0011 { 
-                     [double]$ImgDirection = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4)))
-                     $exifData.GPSImgDirection = $ImgDirection
-                        }
+                [double]$ImgDirection = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4)))
+                $exifData.GPSImgDirection = $ImgDirection
+                }
             0x0000 { $exifData.GPSVersionID = @($value[0], $value[1], $value[2], $value[3]) }
             0x0001 { $exifData.GPSLatitudeRef = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             0x0002 { 
@@ -133,6 +135,7 @@ function Get-ExifData
     return $exifData
     }
 
+# A function to allow Windows users to select a file
 Function Get-File
     {
     Param
@@ -175,20 +178,22 @@ Function Get-File
     return $filenames
     }
 
-# Our test case
+############################################################################################################
+# The main script
 
-# $filePath = "C:\Users\pdonner\Pictures\geotagged_photo\geotag_oskar.jpg"
+# Wish list: 
+# Adapt to cater for command line and cross-platform use
 
-$filePath = Get-File -Title 'Open JPEG file' -Filter 'JPEG files (*.jpg)|*.jpg' 
+$Path = Get-File -Title 'Seöect JPEG file' -Filter 'JPEG files (*.jpg)|*.jpg' 
 
-If ($null -eq $filePath)
+If ($null -eq $Path)
     {
     Write-Host "`nThe user didn't select any file.`n"
     }
 Else
     {
-    $exifData = Get-ExifData -filePath $filePath
+    $exifData = Get-ExifData -Path $Path
 
-    Write-Host "`nReturned EXIF object (GPS coordinates and some camera data):"
+    Write-Host "`nReturned EXIF object (some camera data and GPS coordinates):"
     $exifData | Format-List
     }
