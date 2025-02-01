@@ -13,7 +13,8 @@
 # JPEG image file). The objective was, however, to extract GPS data from the file 
 # and copilot didn't manage to achieve that aim. 
 
-# The aim was achived by reading EXIF documetation published by Microsoft.
+# The aim was achived by reading EXIF documetation published by Microsoft and 
+# the Association of Camera and imaging Products (CIPA).
 # Also browsed a couple of articles touching upon the topic. 
 # This article was particularly helpful:
 
@@ -37,6 +38,11 @@
 # Add an error message if user declines to select a file
 # Improve documentation.
 
+# Version 5.1
+# Clean up comments and readme material
+# Improve the readability of the code
+# Smoothen parameter names
+
 # ---------------------------------------------------------------------------
 
 # Load the required image processing assembly
@@ -55,6 +61,10 @@ function ConvertToDecimal {
     }
     return $decimal
 }
+
+# Copilot generated code, with manual modifications allowing access to
+# double float latitude and longitude values. Also added a couple of 
+# EXIF properties to the return object.
 
 # Function to get EXIF data
 function Get-ExifData 
