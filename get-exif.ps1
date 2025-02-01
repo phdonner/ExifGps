@@ -191,7 +191,7 @@ $Path = Get-File -Title 'Seöect JPEG file' -Filter 'JPEG files (*.jpg)|*.jpg'
 
 If ($null -eq $Path)
     {
-    Write-Host "`nThe user didn't select any file.`n"
+    Write-Host "`nUser didn't select any file.`n"
     }
 Else
     {
