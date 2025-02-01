@@ -43,6 +43,10 @@
 # Improve the readability of the code
 # Smoothen parameter names
 
+# Version 5.2
+# Improve formatting of the output of GPS values to display 
+# decimal versions of Latitude and Longitude coordinates
+
 # ---------------------------------------------------------------------------
 
 # Load the required image processing assembly
@@ -92,9 +96,15 @@ function Get-ExifData
             0x010F { $exifData.Manufacturer = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             0x0110 { $exifData.Model = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             0x8827 { $exifData.ISO = [BitConverter]::ToUInt16($value, 0) }
+
+#           0x9201 ShutterSpeedValue SRATIONAL (1)
+#           0x9202 ApertureValue     RATIONAL (1)       
+           
 # NB Consider using GPS timing instead or alongside the camera's DateTaken Id
             0x9003 { $exifData.DateTaken = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            0x0008 { $exifData.GPSSatellites = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }             
+            # Never seen this Id
+            0x0008 { $exifData.GPSSatellites = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            # Never seen this Id
             0x0011 { 
                 [double]$ImgDirection = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4)))
                 $exifData.GPSImgDirection = $ImgDirection
@@ -104,31 +114,31 @@ function Get-ExifData
             0x0002 { 
                 # Extract the GPS Latitude values: degrees, minutes, seconds
                 # They are stored in the EXIF as 3 double floats
-                [double]$LatDegrees = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4)))
-                [double]$LatMinutes = ([System.BitConverter]::ToInt32( $value, 8)) / ([System.BitConverter]::ToInt32($value, 12))
+                [double]$LatDegrees = ([System.BitConverter]::ToInt32( $value, 0))  / ([System.BitConverter]::ToInt32($value, 4))
+                [double]$LatMinutes = ([System.BitConverter]::ToInt32( $value, 8))  / ([System.BitConverter]::ToInt32($value, 12))
                 [double]$LatSeconds = ([System.BitConverter]::ToInt32( $value, 16)) / ([System.BitConverter]::ToInt32($value, 20))
-    
-                # Let's print the values on the operator's console
-                Write-Host "EXIF GPSLatitude  (d, m, s.s): $LatDegrees $LatMinutes $LatSeconds"
     
                 # Store the array of values in the returned latitude object
                 $exifData.GPSLatitude = @($LatDegrees, $LatMinutes, $LatSeconds)
                 $exifData.GPSLatitudeDecimal = ConvertToDecimal -coordinate $exifData.GPSLatitude -ref $exifData.GPSLatitudeRef
+                
+                # Let's display the values on the operator's console
+                Write-Host "EXIF GPSLatitude  (d, m, s.s): $($LatDegrees), $($LatMinutes), $($LatSeconds) and GPSLatitudeDecimal (d.nnnn): $($exifData.GPSLATitudeDecimal)"
                 }
             0x0003 { $exifData.GPSLongitudeRef = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             0x0004 { 
                 # Extract the GPS Longitude values: degrees, minutes, seconds
                 # They are stored in the EXIF as 3 double floats
-                [double]$LongDegrees = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32( $value, 4)))
-                [double]$LongMinutes = ([System.BitConverter]::ToInt32( $value, 8)) / ([System.BitConverter]::ToInt32( $value, 12))
+                [double]$LongDegrees = ([System.BitConverter]::ToInt32( $value, 0))  / ([System.BitConverter]::ToInt32( $value, 4))
+                [double]$LongMinutes = ([System.BitConverter]::ToInt32( $value, 8))  / ([System.BitConverter]::ToInt32( $value, 12))
                 [double]$LongSeconds = ([System.BitConverter]::ToInt32( $value, 16)) / ([System.BitConverter]::ToInt32( $value, 20))
-    
-                # Let's print the values on the operator's console
-                Write-Host "EXIF GPSLongitude (d, m, s.s): $LongDegrees $LongMinutes $LongSeconds"
     
                 # Store the array of values in the returned longitude object
                 $exifData.GPSLongitude = @($LongDegrees, $LongMinutes, $LongSeconds)
                 $exifData.GPSLongitudeDecimal = ConvertToDecimal -coordinate $exifData.GPSLongitude -ref $exifData.GPSLongitudeRef
+
+                # Let's display the values on the operator's console
+                Write-Host "EXIF GPSLongitude (d, m, s.s): $($LongDegrees), $($LongMinutes), $($LongSeconds) and GPSLongitudeDecimal (d.nnnn): $($exifData.GPSLongitudeDecimal)"
                 }
 
             # Extract other EXIF properties (e.g. altitude if needed)
@@ -180,7 +190,7 @@ Function Get-File
 
     $DialogResult = $OpenFileDialog.ShowDialog((New-Object System.Windows.Forms.Form -Property @{TopMost = $true}))
 
-   	If ($DialogResult -eq [Windows.Forms.DialogResult]::OK)
+    If ($DialogResult -eq [Windows.Forms.DialogResult]::OK)
         {
         $FileNames = $OpenFileDialog.FileNames
         # $InitialDir = Split-Path $FileNames[0] -Parent
