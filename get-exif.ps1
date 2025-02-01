@@ -183,9 +183,7 @@ Function Get-File
     return $filenames
     }
 
-# Our test case
-
-# $filePath = "C:\Users\pdonner\Pictures\geotagged_photo\geotag_oskar.jpg"
+# Our test script:
 
 $Path = Get-File -Title 'Seöect JPEG file' -Filter 'JPEG files (*.jpg)|*.jpg' 
 
