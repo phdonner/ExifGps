@@ -1,8 +1,8 @@
 # ExifGps - A reader of EXIF GPS values in JPEG photographs
 
-The ExifGps repository gives users the ability to read values of the most important EXIF camera and GPS identifiers on PowerShell Windows hosts.
+The ExifGps repository gives users the ability to read values of EXIF camera and GPS identifiers on PowerShell Windows hosts.
 
-It is a utility which is meant to be used in developing a documentation system for village network construction. Eearthwork builders and telecom installators submit their geotagged photographs to the project coordinator. With this script the constructors and the administrator can verify that the image contains the vital date and location data.
+It is a utility which is meant to be used in developing a documentation system for village network construction. Eearthwork builders and telecom installators submit their geotagged photographs to the project coordinator. With this script the constructors and the administrator can verify that the image contains the vital date and location data. It also returns a PowerShell object which can be piped to GIS-capable software.
 
 The ExifGps utility is hopefully helpful in integrating photo acquisiton with geotagged representation of images and related information in the open-source and free geographical information tool QGIS. The documentator integrates the images with map data in a QGIS ImportPhotos layer of QGIS. ImportPhotos is a plugin tool for QGIS. It can be used to import Geo-Tagged JPEG photos as points or any other marker on QGIS maps. The photos and metainformation can be viewed on a map layer of choice.
 
