@@ -2,10 +2,13 @@
 
 The ExifGps repository gives users the ability to read values of the most important EXIF camera and GPS identifiers on PowerShell Windows hosts.
 
-It is a utility which is being used in developing a documentation system for village network construction. Eearthwork builders and telecom installators submit their geotagged photographs to the project coordinator. With this script the administrator can control that the photographs contain the vital date and location data.
+It is a utility which is meant to be used in developing a documentation system for village network construction. Eearthwork builders and telecom installators submit their geotagged photographs to the project coordinator. With this script the constructors and the administrator can verify that the image contains the vital date and location data.
 
-The coordinator integrates the images with map data in a QGIS ImportPhotos layer. ImportPhotos is plugin tool for the free and open-source QGIS geographical information system. ImportPhotos can be used to import Geo-Tagged JPEG photos as points to QGIS. The photos and metainformation can be viewed on a map layer in QGIS.
+The ExifGps utility can easely is hopefully helpful in integrating photo acquisiton with geotagged representation in the open-source and free geographical information tool QGIS. The documentator integrates the images with map data in a QGIS ImportPhotos layer of QGIS. ImportPhotos is a plugin tool for QGIS. ImportPhotos can be used to import Geo-Tagged JPEG photos as points to QGIS. The photos and metainformation can be viewed on a map layer of choice.
 
-In QGIS the user is able to select a folder with photos and only the geo-tagged photos will be imported. Then a layer will be created which will contain the name of the picture, its directory, the date and time taken, altitude, longitude, latitude, azimuth, north, camera maker and model, title, user comment and relative path.
+In QGIS, the user is able to select a folder with photos and only geo-tagged photos will be imported. Then a layer will be created which will contain the name of the photograph, its directory, the date and time taken, altitude, longitude, latitude, azimuth, north, camera maker and model, title, user comment and relative path.
 
-Limitations: The file open dialog is based on functionality which apparently is available only on Windows hosts.
+Limitations: The file open dialog is based on functionality which apparently is available only on Windows hosts. Some Read-Host functionality will carry out the same job on Apple and Linux systems.
+
+Please note that [https://exiftool.org/](ExifTool by Phil Harvey) is another, extremly versatile tool for reeading and editing of Exif information. It works with quite a number of image and document formats. ExifTool is also very well equipped in handling a multitude of languages. Unfortunately rich features come with a steep learning curve. The following is a pointer to discussion of problems in integrating ExifTool with Powershell: [https://exiftool.org/forum/index.php?topic=15143.0](Running in Powershell function with exiftool if condition.)
+
