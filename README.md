@@ -4,7 +4,7 @@ The ExifGps repository gives users the ability to read values of the most import
 
 It is a utility which is meant to be used in developing a documentation system for village network construction. Eearthwork builders and telecom installators submit their geotagged photographs to the project coordinator. With this script the constructors and the administrator can verify that the image contains the vital date and location data.
 
-The ExifGps utility is hopefully helpful in integrating photo acquisiton with geotagged representation of images and related information in the open-source and free geographical information tool QGIS. The documentator integrates the images with map data in a QGIS ImportPhotos layer of QGIS. ImportPhotos is a plugin tool for QGIS. ImportPhotos can be used to import Geo-Tagged JPEG photos as points to QGIS. The photos and metainformation can be viewed on a map layer of choice.
+The ExifGps utility is hopefully helpful in integrating photo acquisiton with geotagged representation of images and related information in the open-source and free geographical information tool QGIS. The documentator integrates the images with map data in a QGIS ImportPhotos layer of QGIS. ImportPhotos is a plugin tool for QGIS. It can be used to import Geo-Tagged JPEG photos as points or any other marker on QGIS maps. The photos and metainformation can be viewed on a map layer of choice.
 
 In QGIS, the ImportPhoto user is able to select a folder with photos and only geo-tagged photos will be imported. Then a layer will be created which will contain the name of the photograph, its directory, the date and time taken, altitude, longitude, latitude, azimuth, north, camera maker and model, title, user comment and relative path.
 
