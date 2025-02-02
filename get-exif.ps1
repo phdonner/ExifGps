@@ -1,17 +1,25 @@
-# Get-Exif, version 5.1 01.02.2025
+# Get-Exif, version 5.2 02.02.2025
 
 # This is a utility which is used to browse GPS values in the EXIF metadata
 # of JPEG files.
 
-# It is also an experiment aimed at testing and demonstrating the use value of 
-# AI generated code.
+# Dot-source this script and call the Main function with a file path as a parameter,
+# like this: 
 
-# The tool was partly generated GitHub Copilot, a VS Code extension that uses 
-# OpenAI's GPT-3 model to generate code. 
+# . '.\get-exif.ps1'
+# Main -Path 'C:\path\to\your\file.jpg'
 
-# The developing assistant managed to generate a script that reads EXIF data from 
-# JPEG image file). The objective was, however, to extract GPS data from the file 
-# and copilot didn't manage to achieve that aim. 
+# Or if you need rich output append -Verbose to the command:
+
+# Main -Path 'C:\path\to\your\file.jpg' -Verbose
+
+# This is also an experiment aimed at testing and demonstrating the use value of 
+# AI generated code. The tool was partly generated GitHub Copilot, a VS Code extension 
+# that uses OpenAI's GPT-3 model to generate code. 
+
+# The developer's Copilot assistant managed to generate a script that reads EXIF data
+#  from JPEG image file). The objective was, however, to extract GPS data from 
+# the file and Copilot didn't manage to achieve that aim. 
 
 # The aim was achived by reading EXIF documetation published by Microsoft and 
 # the Association of Camera and imaging Products (CIPA).
@@ -45,12 +53,10 @@
 
 # Version 5.2
 # Improve formatting of the output of GPS values to display 
-# decimal versions of Latitude and Longitude coordinates
+# rich content by tuning CMDLETBINDING and Write-Verbose functionality
+# Separate main script into a Main function
 
 # ---------------------------------------------------------------------------
-
-# Load the required image processing assembly
-Add-Type -AssemblyName System.Drawing
 
 # Copilot generated code:
 # Function to convert GPS coordinates to decimal
@@ -73,12 +79,13 @@ function ConvertToDecimal {
 # Function to get EXIF data
 function Get-ExifData 
     {
+    [CmdletBinding()]
     param ([string]$Path)
 
     $image = [System.Drawing.Image]::FromFile($Path)
     $propertyItems = $image.PropertyItems
 
-    Write-Host "`nEXIF GPS coordinates in $($Path):`n"
+    Write-Verbose "`nRetrieved EXIF GPS coordinates in $($Path):`n"
 
     # Initialize the EXIF data object to be returned
     $exifData = [Ordered]@{}
@@ -123,7 +130,7 @@ function Get-ExifData
                 $exifData.GPSLatitudeDecimal = ConvertToDecimal -coordinate $exifData.GPSLatitude -ref $exifData.GPSLatitudeRef
                 
                 # Let's display the values on the operator's console
-                Write-Host "EXIF GPSLatitude  (d, m, s.s): $($LatDegrees), $($LatMinutes), $($LatSeconds) and GPSLatitudeDecimal (d.nnnn): $($exifData.GPSLATitudeDecimal)"
+                Write-Verbose "EXIF GPSLatitude  (d, m, s.s): $($LatDegrees), $($LatMinutes), $($LatSeconds) and GPSLatitudeDecimal (d.nnnn): $($exifData.GPSLATitudeDecimal)"
                 }
             0x0003 { $exifData.GPSLongitudeRef = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             0x0004 { 
@@ -138,7 +145,7 @@ function Get-ExifData
                 $exifData.GPSLongitudeDecimal = ConvertToDecimal -coordinate $exifData.GPSLongitude -ref $exifData.GPSLongitudeRef
 
                 # Let's display the values on the operator's console
-                Write-Host "EXIF GPSLongitude (d, m, s.s): $($LongDegrees), $($LongMinutes), $($LongSeconds) and GPSLongitudeDecimal (d.nnnn): $($exifData.GPSLongitudeDecimal)"
+                Write-Verbose "EXIF GPSLongitude (d, m, s.s): $($LongDegrees), $($LongMinutes), $($LongSeconds) and GPSLongitudeDecimal (d.nnnn): $($exifData.GPSLongitudeDecimal)"
                 }
 
             # Extract other EXIF properties (e.g. altitude if needed)
@@ -163,6 +170,7 @@ function Get-ExifData
 # A function to allow Windows users to select a file
 Function Get-File
     {
+    [CmdletBinding()]
     Param
         (
         [Parameter(Mandatory=$false)]
@@ -178,15 +186,20 @@ Function Get-File
         [switch]$CheckFileExists = $false
         )
 
-	Add-Type -AssemblyName System.Windows.Forms
+    # Reference the Windows forms namespace and create the file dialog object
 
+	Add-Type -AssemblyName System.Windows.Forms
     $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
+
+    # Initialize the file dialog object with the vital parameters
 
     $OpenFileDialog.Title = $Title
     $OpenFileDialog.InitialDirectory = $Settings.InitialDir
     $OpenFileDialog.Filter = $Filter
     $OpenFileDialog.Multiselect = $Multiselect
     $OpenFileDialog.CheckFileExists = $CheckFileExists
+
+    # Ready for the user to select a file
 
     $DialogResult = $OpenFileDialog.ShowDialog((New-Object System.Windows.Forms.Form -Property @{TopMost = $true}))
 
@@ -197,24 +210,51 @@ Function Get-File
         }
     Else
         {
-        Write-Verbose -Message 'User canceled file selection'
+        Write-Debug -Message 'User canceled file selection'
         }
 
     return $filenames
     }
 
-# Our test script:
-
-$Path = Get-File -Title 'Seöect JPEG file' -Filter 'JPEG files (*.jpg)|*.jpg' 
-
-If ($null -eq $Path)
+# Our Windows enabled test script:
+Function Main
     {
-    Write-Host "`nUser didn't select any file.`n"
-    }
-Else
-    {
-    $exifData = Get-ExifData -Path $Path
+    [CmdletBinding()]
+    param (
+        [string]$Path)
 
-    Write-Host "`nReturned EXIF object (some camera data and GPS coordinates):"
-    $exifData | Format-List
+    # Load the required image processing assembly
+    Add-Type -AssemblyName System.Drawing
+
+    If ('' -eq $Path)
+        {
+        Write-Verbose "`nNo file path was provided as a command line argument.`n"
+
+        # Let's present a Windows file dialog to the user
+
+        $Path = Get-File -Title 'Select JPEG file' -Filter 'JPEG files (*.jpg)|*.jpg' 
+
+        If ('' -eq $Path)
+            {
+            Write-Verbose "`nUser didn't select any file.`n"
+
+            # Still no file reference. We are done here
+            Exit
+            }
+        }
+    
+    # Let's check if the user submitted file exists
+
+    If (Test-Path -Path $Path -PathType leaf)
+        {
+        $exifData = Get-ExifData -Path $Path
+
+        $FileName = Split-Path -Path $Path -Leaf
+        Write-Verbose "`nReturned EXIF object (some camera data and GPS coordinates) for $($FileName):"
+        $exifData
+        }
+    else 
+        {
+        Write-Error "Invalid file reference: $Path"
+        }
     }
