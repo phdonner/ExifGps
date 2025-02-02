@@ -59,6 +59,13 @@
 # rich content by tuning CMDLETBINDING and Write-Verbose functionality
 # Separate main script into a Main function
 
+# Version 5.3
+# Add GPSMeasureMode, GPSTrackRef, GPSTrack, GPSImgDirectionRef, 
+# GPSSpeedRef, GPSSpeed, GPSDestDistanceRef, GPSDestDistance
+
+
+# to the return object
+
 # ---------------------------------------------------------------------------
 
 # Copilot generated code:
@@ -102,23 +109,17 @@ function Get-ExifData
         # Let's decode interesting camera and GPS EXIF id's
         switch ($id) 
             {
-            0x9000 { $exifData.ExifVersion = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x9000 { $exifData.ExifVersion  = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             0x010F { $exifData.Manufacturer = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            0x0110 { $exifData.Model = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            0x8827 { $exifData.ISO = [BitConverter]::ToUInt16($value, 0) }
+            0x0110 { $exifData.Model        = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x8827 { $exifData.ISO          = [BitConverter]::ToUInt16($value, 0) }
 
 #           0x9201 ShutterSpeedValue SRATIONAL (1)
 #           0x9202 ApertureValue     RATIONAL (1)       
            
 # NB Consider using GPS timing instead or alongside the camera's DateTaken Id
-            0x9003 { $exifData.DateTaken = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            # Never seen this Id
-            0x0008 { $exifData.GPSSatellites = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            # Never seen this Id
-            0x0011 { 
-                [double]$ImgDirection = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4)))
-                $exifData.GPSImgDirection = $ImgDirection
-                }
+            0x9003 { $exifData.DateTaken    = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+
             0x0000 { $exifData.GPSVersionID = @($value[0], $value[1], $value[2], $value[3]) }
             0x0001 { $exifData.GPSLatitudeRef = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             0x0002 { 
@@ -132,7 +133,7 @@ function Get-ExifData
                 $exifData.GPSLatitude = @($LatDegrees, $LatMinutes, $LatSeconds)
                 $exifData.GPSLatitudeDecimal = ConvertToDecimal -coordinate $exifData.GPSLatitude -ref $exifData.GPSLatitudeRef
                 
-                # Let's display the values on the operator's console
+                # Display the values on the operator's console
                 Write-Verbose "EXIF GPSLatitude  (d, m, s.s): $($LatDegrees), $($LatMinutes), $($LatSeconds) and GPSLatitudeDecimal (d.nnnn): $($exifData.GPSLATitudeDecimal)"
                 }
             0x0003 { $exifData.GPSLongitudeRef = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
@@ -147,10 +148,68 @@ function Get-ExifData
                 $exifData.GPSLongitude = @($LongDegrees, $LongMinutes, $LongSeconds)
                 $exifData.GPSLongitudeDecimal = ConvertToDecimal -coordinate $exifData.GPSLongitude -ref $exifData.GPSLongitudeRef
 
-                # Let's display the values on the operator's console
+                # isplay the values on the operator's console
                 Write-Verbose "EXIF GPSLongitude (d, m, s.s): $($LongDegrees), $($LongMinutes), $($LongSeconds) and GPSLongitudeDecimal (d.nnnn): $($exifData.GPSLongitudeDecimal)"
                 }
+            # Never seen this Id
+            0x0008 { $exifData.GPSSatellites        = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            # Never seen this Id
+            0x0009 { $exifData.GPSStatus            = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            # Never seen this Id
+            0x000a { $exifData.GPSMeasureMode       = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x000b { [double]$exifData.GPSDOP       = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
+            0x000c { $exifData.GPSSpeedRef          = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x000d { [double]$exifData.GPSSpeed     = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
+            # Never seen this Id
+            0x000e { $exifData.GPSTrackRef          = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            # Never seen this Id
+            0x000f { [double]$exifData.GPSTrack     = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
+            0x0010 { $exifData.GPSImgDirectionRef   = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x0011 { [double]$exifData.GPSImgDirection = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
+            # Never seen this Id
+            0x0019 { $exifData.GPSDestDistanceRef   = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            # Never seen this Id
+            0x001a { [double]$exifData.GPSDestDistance = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
+<# GPS EXIF ids declared in https://www.imo.universite-paris-saclay.fr/~thierry.bousch/exifdump.py
+Also cf 'Standard Exif Tags 'These are the Exif tags as defined in the Exif 2.3 standard:
+        https://www.exiv2.org/tags.html
+        There the values are also defined.
 
+
+            GPS_TAGS = {
+                0x0:	"GPSVersionID",
+                0x1:	"GPSLatitudeRef",
+                0x2:	"GPSLatitude",
+                0x3:	"GPSLongitudeRef",
+                0x4:	"GPSLongitude",
+                0x5:	"GPSAltitudeRef",
+                0x6:	"GPSAltitude",
+                0x7:	"GPSTimeStamp",
+                0x8:	"GPSSatellites",
+                0x9:	"GPSStatus",
+                0xA:	"GPSMeasureMode",
+                0xB:	"GPSDOP",
+                0xC:	"GPSSpeedRef",
+                0xD:	"GPSSpeed",
+                0xE:	"GPSTrackRef",
+                0xF:	"GPSTrack",
+                0x10:	"GPSImgDirectionRef",
+                0x11:	"GPSImgDirection",
+                0x12:	"GPSMapDatum",
+                0x13:	"GPSDestLatitudeRef",
+                0x14:	"GPSDestLatitude",
+                0x15:	"GPSDestLongitudeRef",
+                0x16:	"GPSDestLongitude",
+                0x17:	"GPSDestBearingRef",
+                0x18:	"GPSDestBearing",
+                0x19:	"GPSDestDistanceRef",
+                0x1A:	"GPSDestDistance",
+                0x1B:	"GPSProcessingMethod",
+                0x1C:	"GPSAreaInformation",
+                0x1D:	"GPSDateStamp",
+                0x1E:	"GPSDifferential"
+            }
+#>
             # Extract other EXIF properties (e.g. altitude if needed)
             }
         }
