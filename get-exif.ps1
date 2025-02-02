@@ -9,7 +9,7 @@
 # . '.\get-exif.ps1'
 # Main -Path 'C:\path\to\your\file.jpg'
 
-# Or if you need rich output append -Verbose to the command:
+# If you need rich output, append -Verbose to the command:
 
 # Main -Path 'C:\path\to\your\file.jpg' -Verbose
 
@@ -18,8 +18,8 @@
 # that uses OpenAI's GPT-3 model to generate code. 
 
 # The developer's Copilot assistant managed to generate a script that reads EXIF data
-#  from JPEG image file). The objective was, however, to extract GPS data from 
-# the file and Copilot didn't manage to achieve that aim. 
+# from JPEG image file). The objective was, however, to extract GPS data from 
+# the file and Copilot didn't manage to achieve that end. 
 
 # The aim was achived by reading EXIF documetation published by Microsoft and 
 # the Association of Camera and imaging Products (CIPA).
@@ -30,6 +30,9 @@
 # https://stackoverflow.com/questions/45136895/extracting-gps-numerical-values-from-byte-array-using-powershell
 
 # Updates:
+
+# Version 1
+# Initial Copilot genereated code with some manual modifications
 
 # Version 2 
 # Clean up the code and comment it lightly
