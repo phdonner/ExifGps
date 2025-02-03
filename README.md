@@ -1,4 +1,4 @@
-# ExifGps - A reader of EXIF GPS values in JPEG photographs
+# ExifGps - A PowerShell reader of EXIF GPS values in JPEG photographs
 
 The ExifGps repository gives users the ability to read values of EXIF camera and GPS identifiers on PowerShell Windows hosts.
 
