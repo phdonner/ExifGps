@@ -47,7 +47,7 @@
 # Version 5
 # Add GPSSatellites and GPSImgDirection to the return object
 # Add an error message if user declines to select a file
-# Improve documentation.
+# Improve documentation
 
 # Version 5.1
 # Clean up comments and readme material
@@ -62,9 +62,11 @@
 # Version 5.3
 # Add GPSMeasureMode, GPSTrackRef, GPSTrack, GPSImgDirectionRef, 
 # GPSSpeedRef, GPSSpeed, GPSDestDistanceRef, GPSDestDistance
+# GPSTimeStamp, GPSDOP, GPSMapDatum to the return object
 
-
-# to the return object
+# Version 6
+# Serve Linux and Apple users by adding a Read-Host prompt for 
+# the file path parameter
 
 # ---------------------------------------------------------------------------
 
@@ -109,17 +111,21 @@ function Get-ExifData
         # Let's decode interesting camera and GPS EXIF id's
         switch ($id) 
             {
+            # Photo section:
             0x9000 { $exifData.ExifVersion  = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            0x010F { $exifData.Manufacturer = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            0x0110 { $exifData.Model        = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            0x8827 { $exifData.ISO          = [BitConverter]::ToUInt16($value, 0) }
-
 #           0x9201 ShutterSpeedValue SRATIONAL (1)
 #           0x9202 ApertureValue     RATIONAL (1)       
            
-# NB Consider using GPS timing instead or alongside the camera's DateTaken Id
+            # NB Consider using GPS timing instead or alongside the camera's DateTaken Id
             0x9003 { $exifData.DateTaken    = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x8827 { $exifData.ISO          = [BitConverter]::ToUInt16($value, 0) }
 
+            # Image section:
+            0x010E { $exifData.ImageDescription = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x010F { $exifData.Make         = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x0110 { $exifData.Model        = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+
+            # GPSInfo section:
             0x0000 { $exifData.GPSVersionID = @($value[0], $value[1], $value[2], $value[3]) }
             0x0001 { $exifData.GPSLatitudeRef = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             0x0002 { 
@@ -170,11 +176,13 @@ function Get-ExifData
             0x0019 { $exifData.GPSDestDistanceRef   = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             # Never seen this Id
             0x001a { [double]$exifData.GPSDestDistance = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
-<# GPS EXIF ids declared in https://www.imo.universite-paris-saclay.fr/~thierry.bousch/exifdump.py
-Also cf 'Standard Exif Tags 'These are the Exif tags as defined in the Exif 2.3 standard:
+<# 
+        Cf. the recent document 
+        'Standard Exif Tags' 'These are the Exif tags as defined in the Exif 2.3 standard'
         https://www.exiv2.org/tags.html
-        There the values are also defined.
+        There the values are also defined and explained in detail.
 
+        GPS EXIF ids are enumerated in https://www.imo.universite-paris-saclay.fr/~thierry.bousch/exifdump.py
 
             GPS_TAGS = {
                 0x0:	"GPSVersionID",
@@ -214,14 +222,14 @@ Also cf 'Standard Exif Tags 'These are the Exif tags as defined in the Exif 2.3 
             }
         }
 
-    # At https://stackoverflow.com/questions/59498570/powershell-sorting-hash-table
+    # Comment at https://stackoverflow.com/questions/59498570/powershell-sorting-hash-table
     # You fundamentally cannot sort a hash table ([hashtable] instance) by its keys: 
     # the ordering of keys in a hash table is not guaranteed and cannot be changed.
 
     # To solve your problem, you need a specialized data type that combines 
     # the features of a hash table with maintaining the entry keys in sort order
 
-    # We should instead use Ordered Dictionary $hash = [Ordered]@{} above
+    # We should instead use Ordered Dictionary $hash = [Ordered]@{} Cf. above
 
     # Ordered dictionaries differ from hash tables in that the keys always appear in 
     # the order in which you list them. The order of keys in a hash table is not determined.
@@ -288,24 +296,45 @@ Function Main
     # Load the required image processing assembly
     Add-Type -AssemblyName System.Drawing
 
+    # Let's have a look at what the user provided on the command line
     If ('' -eq $Path)
         {
-        Write-Verbose "`nNo file path was provided as a command line argument.`n"
+        If ($IsWdows)
+            {
+            Write-Verbose "`nNo file path was provided as a command line argument.`n"
 
-        # Let's present a Windows file dialog to the user
+            # Let's present a Windows file dialog to the user
 
-        $Path = Get-File -Title 'Select JPEG file' -Filter 'JPEG files (*.jpg)|*.jpg' 
+            $Path = Get-File -Title 'Select JPEG file' -Filter 'JPEG files (*.jpg)|*.jpg' 
+
+            If ('' -eq $Path)
+                {
+                Write-Verbose "`nUser didn't select any file.`n"
+
+                # Still no file reference. We are done here
+                Exit
+                }
+            }
+        else
+            {
+            # Let's prompt the user to provide a file path
+
+            $Path = Read-Host -Prompt 'Please provide a file path to a JPEG file'
+            }
+
+        # Did we get a file path?
 
         If ('' -eq $Path)
             {
-            Write-Verbose "`nUser didn't select any file.`n"
+            Write-Verbose "`nUser didn't provide a file path.`n"
 
             # Still no file reference. We are done here
             Exit
             }
         }
     
-    # Let's check if the user submitted file exists
+    # Let's check the the user submitted file exists
+    # TODO Provide some more JPEG sanity checking as well
 
     If (Test-Path -Path $Path -PathType leaf)
         {
