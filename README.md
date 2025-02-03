@@ -1,6 +1,6 @@
-# ExifGps - A reader of EXIF GPS values in JPEG photographs
+# ExifGps - A PowerShell reader of EXIF GPS values in JPEG photographs
 
-The ExifGps repository gives users the ability to read values of EXIF camera and GPS identifiers on PowerShell Windows hosts.
+The ExifGps repository gives users the ability to read values of EXIF camera and GPS identifiers of JPEG photographs or images on any PowerShell host.
 
 It is a utility which is meant to be used in developing a documentation system for village network construction. Earthwork builders and telecom technicians submit their geotagged photographs to the project coordinator. With this script the constructors and the administrator can verify that the image contains the vital date and location data. The script returns a PowerShell object which can be piped to GIS-capable software.
 
@@ -9,6 +9,6 @@ The ExifGps utility is hopefully helpful in integrating photo acquisition with g
 In QGIS, the ImportPhotos user is able to select a folder with photos and only geo-tagged photos will be imported. Then a layer will be created which will contain the name of the photograph, its directory, the date and time taken, altitude, longitude, latitude, azimuth, north, camera maker and model, title, user comment and relative path.
 
 The file open dialog is based on functionality which is available only on Windows hosts. Linux and Apple
-users can supply the file reference by means of a Read-Host prompt.
+users can supply the file reference by supplying the command line argument or the Read-Host prompt.
 
 Please, note that [ExifTool by Phil Harvey](https://exiftool.org/) is another extremely versatile tool for reading and editing of Exif information. The software works on Windows, Linux and Apple platforms and it is capable of handling quite a number of image and document formats. ExifTool is also very well equipped in handling a multitude of languages. Unfortunately, rich features come with a steeper learning curve. The following is a pointer to discussion of problems in integrating ExifTool with Powershell: [Running in Powershell function with exiftool if condition.](https://exiftool.org/forum/index.php?topic=15143.0)
