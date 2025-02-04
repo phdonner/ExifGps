@@ -68,6 +68,11 @@
 # Serve Linux and Apple users by adding a Read-Host prompt for 
 # the file path parameter
 
+# Version 6.1
+# Add a prompt argument to force the user to fill in the path
+# on the command line or at the Read-Host command prompt
+# Tell user when there is no Exif in the JPEG picture
+
 # ---------------------------------------------------------------------------
 
 # Copilot generated code:
@@ -97,8 +102,14 @@ function Get-ExifData
     $image = [System.Drawing.Image]::FromFile($Path)
     $propertyItems = $image.PropertyItems
 
-    Write-Verbose "`nRetrieved EXIF GPS coordinates in $($Path):`n"
+    If ($propertyItems.Count -eq 0)
+        {
+        Write-Verbose "`nNo EXIF records found in $($Path).`n"
+        return
+        }
 
+    Write-Verbose "`nRetrieved $($propertyItems.Count) EXIF records in $($Path):`n"
+   
     # Initialize the EXIF data object to be returned
     $exifData = [Ordered]@{}
 
@@ -112,9 +123,13 @@ function Get-ExifData
         switch ($id) 
             {
             # Photo section:
+            0x5090 { $exifData.LuminanceTable = 'n.a.' }
+            0x5091 { $exifData.ChrominanceTable = 'n.a.' }
             0x9000 { $exifData.ExifVersion  = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
 #           0x9201 ShutterSpeedValue SRATIONAL (1)
 #           0x9202 ApertureValue     RATIONAL (1)       
+
+            0x9286  { $exifData.UserComment  = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
            
             # NB Consider using GPS timing instead or alongside the camera's DateTaken Id
             0x9003 { $exifData.DateTaken    = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
@@ -286,7 +301,11 @@ Function Get-File
     return $filenames
     }
 
-# Our Windows enabled test script:
+# Our test script. Call: 
+# Main -Path 'C:\path\to\your\file.jpg'
+# Or just Main and you will be prompted to provide a file path
+# Main -Verbose will provide rich output
+
 Function Main
     {
     [CmdletBinding()]
@@ -299,7 +318,7 @@ Function Main
     # Let's have a look at what the user provided on the command line
     If ('' -eq $Path)
         {
-        If ($IsWdows)
+        If ($IsWindows)
             {
             Write-Verbose "`nNo file path was provided as a command line argument.`n"
 
@@ -341,7 +360,7 @@ Function Main
         $exifData = Get-ExifData -Path $Path
 
         $FileName = Split-Path -Path $Path -Leaf
-        Write-Verbose "`nReturned EXIF object (some camera data and GPS coordinates) for $($FileName):"
+        Write-Verbose "`nReturned EXIF object (some image, photo data and/or GPS Info) for $($FileName):"
         $exifData
         }
     else 

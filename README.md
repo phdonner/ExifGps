@@ -12,3 +12,19 @@ The file open dialog is based on functionality which is available only on Window
 users can supply the file reference by supplying the command line argument or the Read-Host prompt.
 
 Please, note that [ExifTool by Phil Harvey](https://exiftool.org/) is another extremely versatile tool for reading and editing of Exif information. The software works on Windows, Linux and Apple platforms and it is capable of handling quite a number of image and document formats. ExifTool is also very well equipped in handling a multitude of languages. Unfortunately, rich features come with a steeper learning curve. The following is a pointer to discussion of problems in integrating ExifTool with Powershell: [Running in Powershell function with exiftool if condition.](https://exiftool.org/forum/index.php?topic=15143.0)
+
+## Examples
+
+Our test script can be activated by calling:
+
+```powershell
+Main -Path 'C:\path\to\your\file.jpg'
+```
+
+You can alternatively just call Main and you will be prompted to provide a file path.
+
+```powershell
+Main -Path 'C:\path\to\your\file.jpg' -Verbose
+```
+
+This will provide rich output about EXIF in the JPEG file.
