@@ -79,6 +79,9 @@
 # Add the rest of the EXIF GPS IDs:
 # GPSAltitudeRef, GPSaltitude
 
+# Version 6.3
+# Correct Copilot-generated divide by zero error in GPSLatitude and GPSLongitude
+
 # ---------------------------------------------------------------------------
 
 # Copilot generated code:
@@ -152,35 +155,58 @@ function Get-ExifData
             0x0002 { 
                 # Extract the GPS Latitude values: degrees, minutes, seconds
                 # They are stored in the EXIF as 3 double floats
-                [double]$LatDegrees = ([System.BitConverter]::ToInt32( $value, 0))  / ([System.BitConverter]::ToInt32($value, 4))
-                [double]$LatMinutes = ([System.BitConverter]::ToInt32( $value, 8))  / ([System.BitConverter]::ToInt32($value, 12))
-                [double]$LatSeconds = ([System.BitConverter]::ToInt32( $value, 16)) / ([System.BitConverter]::ToInt32($value, 20))
-    
-                # Store the array of values in the returned latitude object
-                $exifData.GPSLatitude = @($LatDegrees, $LatMinutes, $LatSeconds)
+                $LatDegrees = $null
+                $LatMinutes = $null
+                $LatSeconds = $null
 
-                # Not an EXIF id. This Conversion was supplied by Copilot. The format is easier to read and use
-                $exifData.GPSLatitudeDecimal = ConvertToDecimal -coordinate $exifData.GPSLatitude -ref $exifData.GPSLatitudeRef
+                If (0 -eq ([System.BitConverter]::ToInt32($value, 4)))
+                    {
+                    Write-Verbose "No GPS Latitude data found in $($Path).`n"
+                    }
+                Else
+                    {
+                    [double]$LatDegrees = ([System.BitConverter]::ToInt32( $value, 0))  / ([System.BitConverter]::ToInt32($value, 4))
+                    [double]$LatMinutes = ([System.BitConverter]::ToInt32( $value, 8))  / ([System.BitConverter]::ToInt32($value, 12))
+                    [double]$LatSeconds = ([System.BitConverter]::ToInt32( $value, 16)) / ([System.BitConverter]::ToInt32($value, 20))
+    
+                    # Store the array of values in the returned latitude object
+                    $exifData.GPSLatitude = @($LatDegrees, $LatMinutes, $LatSeconds)
+
+                    # Not an EXIF id. This Conversion was supplied by Copilot. The format is easier to read and use
+                    $exifData.GPSLatitudeDecimal = ConvertToDecimal -coordinate $exifData.GPSLatitude -ref $exifData.GPSLatitudeRef
                 
-                # Display the values on the operator's console
-                Write-Verbose "EXIF GPSLatitude  (d, m, s.s): $($LatDegrees), $($LatMinutes), $($LatSeconds) and GPSLatitudeDecimal (d.nnnn): $($exifData.GPSLATitudeDecimal)"
+                    # Display the values on the operator's console
+                    Write-Verbose "EXIF GPSLatitude  (d, m, s.s): $($LatDegrees), $($LatMinutes), $($LatSeconds) and GPSLatitudeDecimal (d.nnnn): $($exifData.GPSLATitudeDecimal)"
+                    }
                 }
             0x0003 { $exifData.GPSLongitudeRef = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             0x0004 { 
                 # Extract the GPS Longitude values: degrees, minutes, seconds
                 # They are stored in the EXIF as 3 double floats
-                [double]$LongDegrees = ([System.BitConverter]::ToInt32( $value, 0))  / ([System.BitConverter]::ToInt32( $value, 4))
-                [double]$LongMinutes = ([System.BitConverter]::ToInt32( $value, 8))  / ([System.BitConverter]::ToInt32( $value, 12))
-                [double]$LongSeconds = ([System.BitConverter]::ToInt32( $value, 16)) / ([System.BitConverter]::ToInt32( $value, 20))
-    
-                # Store the array of values in the returned longitude object
-                $exifData.GPSLongitude = @($LongDegrees, $LongMinutes, $LongSeconds)
 
-                # Not an EXIF id. This Conversion was supplied by Copilot. The format is easier to read and use
-                $exifData.GPSLongitudeDecimal = ConvertToDecimal -coordinate $exifData.GPSLongitude -ref $exifData.GPSLongitudeRef
+                $LongDegrees = $null
+                $LongMinutes = $null
+                $LongSeconds = $null
 
-                # isplay the values on the operator's console
-                Write-Verbose "EXIF GPSLongitude (d, m, s.s): $($LongDegrees), $($LongMinutes), $($LongSeconds) and GPSLongitudeDecimal (d.nnnn): $($exifData.GPSLongitudeDecimal)"
+                If (0 -eq ([System.BitConverter]::ToInt32($value, 4)))
+                    {
+                    Write-Verbose "No GPS Longitude data found in $($Path).`n"
+                    }
+                Else
+                    {
+                    [double]$LongDegrees = ([System.BitConverter]::ToInt32( $value, 0))  / ([System.BitConverter]::ToInt32( $value, 4))
+                    [double]$LongMinutes = ([System.BitConverter]::ToInt32( $value, 8))  / ([System.BitConverter]::ToInt32( $value, 12))
+                    [double]$LongSeconds = ([System.BitConverter]::ToInt32( $value, 16)) / ([System.BitConverter]::ToInt32( $value, 20))
+
+                    # Store the array of values in the returned longitude object
+                    $exifData.GPSLongitude = @($LongDegrees, $LongMinutes, $LongSeconds)
+
+                    # Not an EXIF id. This Conversion was supplied by Copilot. The format is easier to read and use
+                    $exifData.GPSLongitudeDecimal = ConvertToDecimal -coordinate $exifData.GPSLongitude -ref $exifData.GPSLongitudeRef
+
+                    # Display the values on the operator's console
+                    Write-Verbose "EXIF GPSLongitude (d, m, s.s): $($LongDegrees), $($LongMinutes), $($LongSeconds) and GPSLongitudeDecimal (d.nnnn): $($exifData.GPSLongitudeDecimal)"
+                    }
                 }
             0x0005 { $exifData.GPSAltitudeRef = $value[0] }
             0x0006 { [double]$exifData.GPSAltitude  = ([System.BitConverter]::ToInt32( $value, 0))  / ([System.BitConverter]::ToInt32( $value, 4)) }
