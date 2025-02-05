@@ -1,4 +1,4 @@
-# Get-Exif, version 5.2 02.02.2025
+# Get-Exif, version 6.2 04.02.2025
 
 # This is a utility which is used to browse GPS values in the EXIF metadata
 # of JPEG files.
@@ -72,6 +72,12 @@
 # Add a prompt argument to force the user to fill in the path
 # on the command line or at the Read-Host command prompt
 # Tell user when there is no Exif in the JPEG picture
+# Make verbose output more informative
+
+# Version 6.2
+# Include *.jpeg in the Windows file filter
+# Add the rest of the EXIF GPS IDs:
+# GPSAltitudeRef, GPSaltitude
 
 # ---------------------------------------------------------------------------
 
@@ -104,11 +110,11 @@ function Get-ExifData
 
     If ($propertyItems.Count -eq 0)
         {
-        Write-Verbose "`nNo EXIF records found in $($Path).`n"
+        Write-Verbose "No EXIF records found in $($Path).`n"
         return
         }
 
-    Write-Verbose "`nRetrieved $($propertyItems.Count) EXIF records in $($Path):`n"
+    Write-Verbose "Retrieved $($propertyItems.Count) EXIF records in $($Path):`n"
    
     # Initialize the EXIF data object to be returned
     $exifData = [Ordered]@{}
@@ -152,6 +158,8 @@ function Get-ExifData
     
                 # Store the array of values in the returned latitude object
                 $exifData.GPSLatitude = @($LatDegrees, $LatMinutes, $LatSeconds)
+
+                # Not an EXIF id. This Conversion was supplied by Copilot. The format is easier to read and use
                 $exifData.GPSLatitudeDecimal = ConvertToDecimal -coordinate $exifData.GPSLatitude -ref $exifData.GPSLatitudeRef
                 
                 # Display the values on the operator's console
@@ -167,10 +175,20 @@ function Get-ExifData
     
                 # Store the array of values in the returned longitude object
                 $exifData.GPSLongitude = @($LongDegrees, $LongMinutes, $LongSeconds)
+
+                # Not an EXIF id. This Conversion was supplied by Copilot. The format is easier to read and use
                 $exifData.GPSLongitudeDecimal = ConvertToDecimal -coordinate $exifData.GPSLongitude -ref $exifData.GPSLongitudeRef
 
                 # isplay the values on the operator's console
                 Write-Verbose "EXIF GPSLongitude (d, m, s.s): $($LongDegrees), $($LongMinutes), $($LongSeconds) and GPSLongitudeDecimal (d.nnnn): $($exifData.GPSLongitudeDecimal)"
+                }
+            0x0005 { $exifData.GPSAltitudeRef = $value[0] }
+            0x0006 { [double]$exifData.GPSAltitude  = ([System.BitConverter]::ToInt32( $value, 0))  / ([System.BitConverter]::ToInt32( $value, 4)) }
+            0x0007 { 
+                [int]$GPSTimeHours = ([System.BitConverter]::ToInt32( $value, 0))  / ([System.BitConverter]::ToInt32( $value, 4))
+                [int]$GPSTimeMinutes = ([System.BitConverter]::ToInt32( $value, 8))  / ([System.BitConverter]::ToInt32( $value, 12))
+                [double]$GPSTimeSeconds = ([System.BitConverter]::ToInt32( $value, 16)) / ([System.BitConverter]::ToInt32( $value, 20))
+                $exifData.GPSTimeStamp = @($GPSTimeHours, $GPSTimeMinutes, $GPSTimeSeconds)
                 }
             # Never seen this Id
             0x0008 { $exifData.GPSSatellites        = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
@@ -187,6 +205,13 @@ function Get-ExifData
             0x000f { [double]$exifData.GPSTrack     = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
             0x0010 { $exifData.GPSImgDirectionRef   = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             0x0011 { [double]$exifData.GPSImgDirection = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
+            0x0012 { $exifData.GPSMapDatum         = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x0013 { $exifData.GPSDestLatitudeRef   = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x0014 { [double]$exifData.GPSDestLatitude = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
+            0x0015 { $exifData.GPSDestLongitudeRef  = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x0016 { [double]$exifData.GPSDestLongitude = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
+            0x0017 { $exifData.GPSDestBearingRef    = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x0018 { [double]$exifData.GPSDestBearing = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
             # Never seen this Id
             0x0019 { $exifData.GPSDestDistanceRef   = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             # Never seen this Id
@@ -301,9 +326,11 @@ Function Get-File
     return $filenames
     }
 
-# Our test script. Call: 
+# Our test script. 
+
+# Call
 # Main -Path 'C:\path\to\your\file.jpg'
-# Or just Main and you will be prompted to provide a file path
+# or just Main and you will be prompted to provide a file path
 # Main -Verbose will provide rich output
 
 Function Main
@@ -320,15 +347,15 @@ Function Main
         {
         If ($IsWindows)
             {
-            Write-Verbose "`nNo file path was provided as a command line argument.`n"
+            Write-Verbose "No file path was provided as a command line argument.`n"
 
             # Let's present a Windows file dialog to the user
 
-            $Path = Get-File -Title 'Select JPEG file' -Filter 'JPEG files (*.jpg)|*.jpg' 
+            $Path = Get-File -Title 'Select JPEG file' -Filter 'JPEG files (*.jpg; *.jpeg)|*.jpg; *.jpeg' 
 
             If ('' -eq $Path)
                 {
-                Write-Verbose "`nUser didn't select any file.`n"
+                Write-Verbose "User didn't select any file.`n"
 
                 # Still no file reference. We are done here
                 Exit
@@ -345,7 +372,7 @@ Function Main
 
         If ('' -eq $Path)
             {
-            Write-Verbose "`nUser didn't provide a file path.`n"
+            Write-Verbose "User didn't provide a file path.`n"
 
             # Still no file reference. We are done here
             Exit
@@ -360,7 +387,7 @@ Function Main
         $exifData = Get-ExifData -Path $Path
 
         $FileName = Split-Path -Path $Path -Leaf
-        Write-Verbose "`nReturned EXIF object (some image, photo data and/or GPS Info) for $($FileName):"
+        Write-Verbose "Returned EXIF object (some image, photo data and/or GPS Info) for $($FileName):"
         $exifData
         }
     else 
