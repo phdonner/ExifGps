@@ -76,11 +76,15 @@
 
 # Version 6.2
 # Include *.jpeg in the Windows file filter
-# Add the rest of the EXIF GPS IDs:
-# GPSAltitudeRef, GPSaltitude
+# Add the EXIF GPS IDs: GPSAltitudeRef, GPSaltitude
 
 # Version 6.3
 # Correct Copilot-generated divide by zero error in GPSLatitude and GPSLongitude
+
+# Version 6.4
+# Add missing EXIF GPS related IDs:
+# Image.GPSTag, GPSProcessingMethod, GPSAreaInformation, 
+# GPSDateStamp, GPSDifferential, GPSHPositioningError
 
 # ---------------------------------------------------------------------------
 
@@ -134,20 +138,23 @@ function Get-ExifData
             # Photo section:
             0x5090 { $exifData.LuminanceTable = 'n.a.' }
             0x5091 { $exifData.ChrominanceTable = 'n.a.' }
+
             0x9000 { $exifData.ExifVersion  = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-#           0x9201 ShutterSpeedValue SRATIONAL (1)
-#           0x9202 ApertureValue     RATIONAL (1)       
-
-            0x9286  { $exifData.UserComment  = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
            
-            # NB Consider using GPS timing instead or alongside the camera's DateTaken Id
-            0x9003 { $exifData.DateTaken    = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            0x8827 { $exifData.ISO          = [BitConverter]::ToUInt16($value, 0) }
-
             # Image section:
             0x010E { $exifData.ImageDescription = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            0x010F { $exifData.Make         = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            0x0110 { $exifData.Model        = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x010F { $exifData.Make             = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x0110 { $exifData.Model            = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x8769 { $exifData.ExifTag          = [BitConverter]::ToUInt32($value, 0) }
+            0x8822 { $exifData.ExposureTime     = [BitConverter]::ToUInt16($value, 0) }
+            0x8824 { $exifData.ExposureProgram  = [BitConverter]::ToUInt16($value, 0) }
+            0x8825 { $exifData.ISOSpeedRatings  = [BitConverter]::ToUInt16($value, 0) }
+            0x8827 { $exifData.ISO              = [BitConverter]::ToUInt16($value, 0) }
+            # NB Consider using GPS timing instead or alongside the camera's DateTaken Id
+            0x9003 { $exifData.DateTaken        = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+#           0x9201 ShutterSpeedValue SRATIONAL (1)
+#           0x9202 ApertureValue     RATIONAL (1)       
+            0x9286  { $exifData.UserComment     = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
 
             # GPSInfo section:
             0x0000 { $exifData.GPSVersionID = @($value[0], $value[1], $value[2], $value[3]) }
@@ -242,6 +249,17 @@ function Get-ExifData
             0x0019 { $exifData.GPSDestDistanceRef   = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             # Never seen this Id
             0x001a { [double]$exifData.GPSDestDistance = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
+            # Never seen this Id
+            0x001b { $exifData.GPSProcessingMethod  = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            # Never seen this Id
+            0x001c { $exifData.GPSAreaInformation   = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x001d { $exifData.GPSDateStamp         = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            # Never seen this Id
+            0x001e { $exifData.GPSDifferential      = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x001f { [double]$exifData.GPSHPositioningError = ([System.BitConverter]::ToInt32( $value, 0))  / ([System.BitConverter]::ToInt32( $value, 4)) }
+            # Copilot generated code
+            # 0x001f { $exifData.GPSHPositioningError = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+
 <# 
         Cf. the recent document 
         'Standard Exif Tags' 'These are the Exif tags as defined in the Exif 2.3 standard'
