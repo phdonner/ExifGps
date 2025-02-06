@@ -23,4 +23,4 @@ Our test script can be activated by calling:
 Main -Path 'C:\path\to\your\file.jpg'
 ```
 
-You can alternatively just call Main and you will be prompted to provide a file path. The Verbose argument will provide some readible output about EXIF in the JPEG file.
+You can alternatively just call Main and you will be prompted to provide a file path. The -Verbose argument will provide some readible output about EXIF and its GPSInfo section in the JPEG file.

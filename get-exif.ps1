@@ -31,57 +31,57 @@
 
 # Updates:
 
-# Version 1
+# Version 0.1.0
 # Initial Copilot genereated code with some manual modifications
 
-# Version 2 
+# Version 0.2.0 
 # Clean up the code and comment it lightly
 
-# Version 3
+# Version 0.3.0
 # Retrieve EXIF and GPS version information
 # Add a Windows file dialog (and later on some persistent file settings)
 
-# Version 4
+# Version 0.4.0
 # Use an Ordered Dictionary instead of a hash table in the return object
 
-# Version 5
+# Version 0.5.0
 # Add GPSSatellites and GPSImgDirection to the return object
 # Add an error message if user declines to select a file
 # Improve documentation
 
-# Version 5.1
+# Version 0.5.1
 # Clean up comments and readme material
 # Improve the readability of the code
 # Smoothen parameter names
 
-# Version 5.2
+# Version 0.5.2
 # Improve formatting of the output of GPS values to display 
 # rich content by tuning CMDLETBINDING and Write-Verbose functionality
 # Separate main script into a Main function
 
-# Version 5.3
+# Version 0.5.3
 # Add GPSMeasureMode, GPSTrackRef, GPSTrack, GPSImgDirectionRef, 
 # GPSSpeedRef, GPSSpeed, GPSDestDistanceRef, GPSDestDistance
 # GPSTimeStamp, GPSDOP, GPSMapDatum to the return object
 
-# Version 6
+# Version 0.6.0
 # Serve Linux and Apple users by adding a Read-Host prompt for 
 # the file path parameter
 
-# Version 6.1
+# Version 0.6.1
 # Add a prompt argument to force the user to fill in the path
 # on the command line or at the Read-Host command prompt
 # Tell user when there is no Exif in the JPEG picture
 # Make verbose output more informative
 
-# Version 6.2
+# Version 0.6.2
 # Include *.jpeg in the Windows file filter
 # Add the EXIF GPS IDs: GPSAltitudeRef, GPSaltitude
 
-# Version 6.3
+# Version 0.6.3
 # Correct Copilot-generated divide by zero error in GPSLatitude and GPSLongitude
 
-# Version 6.4
+# Version 0.6.4
 # Add missing EXIF GPS related IDs:
 # Image.GPSTag, GPSProcessingMethod, GPSAreaInformation, 
 # GPSDateStamp, GPSDifferential, GPSHPositioningError
