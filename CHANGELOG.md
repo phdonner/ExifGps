@@ -1,16 +1,20 @@
-# ExifGps Changelog
+# ExifGps Changelog (2025-02-06)
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.6.5] - 2025-02-06
 
-- Move update history to CHANGELOG.md
+### Minor update ver. 6.5
+
+- Make slight improvements to CHANGELOG.md
 
 ## [0.6.4] - 2025-02-06
 
 ### Add missing EXIF GPS related IDs ver. 6.4
 
 - Image.GPSTag, GPSProcessingMethod, GPSAreaInformation, GPSDateStamp, GPSDifferential, GPSHPositioningError
+- Move update history to CHANGELOG.md
+
 
 ## [0.6.3] - 2025-02-05
 
@@ -89,4 +93,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.1.0] - 2025-01-27
 
-### Initial Copilot genereated code with some manual modifications
+### Create initial version
+
+- Generate initial Copilot code 
+- Make some manual improvements
