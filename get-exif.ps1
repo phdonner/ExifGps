@@ -81,7 +81,7 @@ function Get-ExifData
 
         If ($id -ge 0x0000 -and $id -le 0x001F)
             {
-            Write-Verbose "Property Id: $($id.ToString('X4')) Type: $($type) Value: $($value) Len: $($Len)"
+            Write-Debug "Property Id: $($id.ToString('X4')) Type: $($type) Value: $($value) Len: $($Len)"
             }   
 
         # Let's decode some interesting camera and GPS EXIF id's
