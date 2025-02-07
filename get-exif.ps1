@@ -29,64 +29,7 @@
 # 'Extracting GPS numerical values from byte array using PowerShell'
 # https://stackoverflow.com/questions/45136895/extracting-gps-numerical-values-from-byte-array-using-powershell
 
-# Updates:
-
-# Version 0.1.0
-# Initial Copilot genereated code with some manual modifications
-
-# Version 0.2.0 
-# Clean up the code and comment it lightly
-
-# Version 0.3.0
-# Retrieve EXIF and GPS version information
-# Add a Windows file dialog (and later on some persistent file settings)
-
-# Version 0.4.0
-# Use an Ordered Dictionary instead of a hash table in the return object
-
-# Version 0.5.0
-# Add GPSSatellites and GPSImgDirection to the return object
-# Add an error message if user declines to select a file
-# Improve documentation
-
-# Version 0.5.1
-# Clean up comments and readme material
-# Improve the readability of the code
-# Smoothen parameter names
-
-# Version 0.5.2
-# Improve formatting of the output of GPS values to display 
-# rich content by tuning CMDLETBINDING and Write-Verbose functionality
-# Separate main script into a Main function
-
-# Version 0.5.3
-# Add GPSMeasureMode, GPSTrackRef, GPSTrack, GPSImgDirectionRef, 
-# GPSSpeedRef, GPSSpeed, GPSDestDistanceRef, GPSDestDistance
-# GPSTimeStamp, GPSDOP, GPSMapDatum to the return object
-
-# Version 0.6.0
-# Serve Linux and Apple users by adding a Read-Host prompt for 
-# the file path parameter
-
-# Version 0.6.1
-# Add a prompt argument to force the user to fill in the path
-# on the command line or at the Read-Host command prompt
-# Tell user when there is no Exif in the JPEG picture
-# Make verbose output more informative
-
-# Version 0.6.2
-# Include *.jpeg in the Windows file filter
-# Add the EXIF GPS IDs: GPSAltitudeRef, GPSaltitude
-
-# Version 0.6.3
-# Correct Copilot-generated divide by zero error in GPSLatitude and GPSLongitude
-
-# Version 0.6.4
-# Add missing EXIF GPS related IDs:
-# Image.GPSTag, GPSProcessingMethod, GPSAreaInformation, 
-# GPSDateStamp, GPSDifferential, GPSHPositioningError
-
-# ---------------------------------------------------------------------------
+# For update history, refer to the CHANGELOG.md file.
 
 # Copilot generated code:
 # Function to convert GPS coordinates to decimal
@@ -128,11 +71,20 @@ function Get-ExifData
 
     foreach ($property in $propertyItems) 
         {
-        $id = $property.Id
-        # $type = $property.Type
-        $value = $property.Value
+        # On the meaning of the property type parameters cf. 
+        # https://learn.microsoft.com/en-us/dotnet/api/system.drawing.imaging.propertyitem.type?view=windowsdesktop-9.0
 
-        # Let's decode interesting camera and GPS EXIF id's
+        $id = $property.Id
+        $type = $property.Type
+        $value = $property.Value
+        $Len = $property.Len        #  the length (in bytes) of the Value byte array
+
+        If ($id -ge 0x0000 -and $id -le 0x001F)
+            {
+            Write-Verbose "Property Id: $($id.ToString('X4')) Type: $($type) Value: $($value) Len: $($Len)"
+            }   
+
+        # Let's decode some interesting camera and GPS EXIF id's
         switch ($id) 
             {
             # Photo section:
@@ -154,11 +106,25 @@ function Get-ExifData
             0x9003 { $exifData.DateTaken        = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
 #           0x9201 ShutterSpeedValue SRATIONAL (1)
 #           0x9202 ApertureValue     RATIONAL (1)       
-            0x9286  { $exifData.UserComment     = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x9286  { 
+                $exifData.UserComment           = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) 
+                }
 
             # GPSInfo section:
-            0x0000 { $exifData.GPSVersionID = @($value[0], $value[1], $value[2], $value[3]) }
+
+            # Cf. https://docs.gleamtech.com/imageultimate/html/T_GleamTech_ImageUltimate_ExifTag_GPSInfo.htm
+
+            # This tag is mandatory when <GPSInfo> tag is present
+            # Type: 1: array of bytes
+            0x0000 { 
+                Write-Verbose 'Mandatory GPSVersionID found.'
+                # tiedosto IMG_20120725_182044.jpg
+
+                $exifData.GPSVersionID  = @($value[0], $value[1], $value[2], $value[3]) 
+                }
+            # Type 2: null-terminated ASCII string
             0x0001 { $exifData.GPSLatitudeRef = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            # Type 5: array of pairs of unsigned long integers
             0x0002 { 
                 # Extract the GPS Latitude values: degrees, minutes, seconds
                 # They are stored in the EXIF as 3 double floats
@@ -166,15 +132,15 @@ function Get-ExifData
                 $LatMinutes = $null
                 $LatSeconds = $null
 
-                If (0 -eq ([System.BitConverter]::ToInt32($value, 4)))
+                If ((0 -eq ([System.BitConverter]::ToInt32($value, 4))) -or (0 -eq ([System.BitConverter]::ToInt32($value, 12))) -or (0 -eq ([System.BitConverter]::ToInt32($value, 20))))
                     {
-                    Write-Verbose "No GPS Latitude data found in $($Path).`n"
+                    $exifData.GPSLatitude = @(0, 0, 0)
                     }
                 Else
                     {
                     [double]$LatDegrees = ([System.BitConverter]::ToInt32( $value, 0))  / ([System.BitConverter]::ToInt32($value, 4))
                     [double]$LatMinutes = ([System.BitConverter]::ToInt32( $value, 8))  / ([System.BitConverter]::ToInt32($value, 12))
-                    [double]$LatSeconds = ([System.BitConverter]::ToInt32( $value, 16)) / ([System.BitConverter]::ToInt32($value, 20))
+                    [double]$LatSeconds = ([System.BitConverter]::ToInt32( $value, 16)) / ([System.BitConverter]::ToInt32( $value, 20))
     
                     # Store the array of values in the returned latitude object
                     $exifData.GPSLatitude = @($LatDegrees, $LatMinutes, $LatSeconds)
@@ -186,7 +152,9 @@ function Get-ExifData
                     Write-Verbose "EXIF GPSLatitude  (d, m, s.s): $($LatDegrees), $($LatMinutes), $($LatSeconds) and GPSLatitudeDecimal (d.nnnn): $($exifData.GPSLATitudeDecimal)"
                     }
                 }
+            # Type 2: null-terminated ASCII string (e.g. 'E')
             0x0003 { $exifData.GPSLongitudeRef = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            # Type 5: array of pairs of unsigned long integers
             0x0004 { 
                 # Extract the GPS Longitude values: degrees, minutes, seconds
                 # They are stored in the EXIF as 3 double floats
@@ -195,9 +163,9 @@ function Get-ExifData
                 $LongMinutes = $null
                 $LongSeconds = $null
 
-                If (0 -eq ([System.BitConverter]::ToInt32($value, 4)))
+                If ((0 -eq ([System.BitConverter]::ToInt32($value, 4))) -or (0 -eq ([System.BitConverter]::ToInt32($value, 12))) -or (0 -eq ([System.BitConverter]::ToInt32($value, 20))))
                     {
-                    Write-Verbose "No GPS Longitude data found in $($Path).`n"
+                    $exifData.GPSLongitude = @(0, 0, 0)
                     }
                 Else
                     {
@@ -215,51 +183,64 @@ function Get-ExifData
                     Write-Verbose "EXIF GPSLongitude (d, m, s.s): $($LongDegrees), $($LongMinutes), $($LongSeconds) and GPSLongitudeDecimal (d.nnnn): $($exifData.GPSLongitudeDecimal)"
                     }
                 }
+            # Type 1: array of bytes (e.g. 0)
             0x0005 { $exifData.GPSAltitudeRef = $value[0] }
+            # Type 5: array of pairs of unsigned long integers
             0x0006 { [double]$exifData.GPSAltitude  = ([System.BitConverter]::ToInt32( $value, 0))  / ([System.BitConverter]::ToInt32( $value, 4)) }
+            # Type 5: array of pairs of unsigned long integers
             0x0007 { 
-                [int]$GPSTimeHours = ([System.BitConverter]::ToInt32( $value, 0))  / ([System.BitConverter]::ToInt32( $value, 4))
-                [int]$GPSTimeMinutes = ([System.BitConverter]::ToInt32( $value, 8))  / ([System.BitConverter]::ToInt32( $value, 12))
+                [int]$GPSTimeHours      = ([System.BitConverter]::ToInt32( $value, 0))  / ([System.BitConverter]::ToInt32( $value, 4))
+                [int]$GPSTimeMinutes    = ([System.BitConverter]::ToInt32( $value, 8))  / ([System.BitConverter]::ToInt32( $value, 12))
                 [double]$GPSTimeSeconds = ([System.BitConverter]::ToInt32( $value, 16)) / ([System.BitConverter]::ToInt32( $value, 20))
-                $exifData.GPSTimeStamp = @($GPSTimeHours, $GPSTimeMinutes, $GPSTimeSeconds)
+                $exifData.GPSTimeStamp  = @($GPSTimeHours, $GPSTimeMinutes, $GPSTimeSeconds)
                 }
-            # Never seen this Id
+            # Type 2: null-terminated ASCII string
             0x0008 { $exifData.GPSSatellites        = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            # Never seen this Id
+            # Never seen this Id. Microsoft documentation indicates that this is an ASCII string 'A' or 'V'
             0x0009 { $exifData.GPSStatus            = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            # Never seen this Id
+            # Never seen this Id. Microsoft documentation indicates that this is an ASCII string '2' or '3'
             0x000a { $exifData.GPSMeasureMode       = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            # Type 5: array of pairs of unsigned long integers
             0x000b { [double]$exifData.GPSDOP       = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
+            # Type 2: null-terminated ASCII string
             0x000c { $exifData.GPSSpeedRef          = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            # Type 5: array of pairs of unsigned long integers
             0x000d { [double]$exifData.GPSSpeed     = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
-            # Never seen this Id
+            # Never seen this Id. Microsoft documentation indicates that this is an ASCII string 'T' or 'M'
             0x000e { $exifData.GPSTrackRef          = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            # Never seen this Id
+            # Never seen this Id: Microsoft documentation indicates that this is a pair of unsigned long integers
             0x000f { [double]$exifData.GPSTrack     = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
+            # Type 2: null-terminated ASCII string
             0x0010 { $exifData.GPSImgDirectionRef   = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            # Type 5: array of pairs of unsigned long integers
             0x0011 { [double]$exifData.GPSImgDirection = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
+            # Type 2: null-terminated ASCII string
             0x0012 { $exifData.GPSMapDatum         = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             0x0013 { $exifData.GPSDestLatitudeRef   = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             0x0014 { [double]$exifData.GPSDestLatitude = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
             0x0015 { $exifData.GPSDestLongitudeRef  = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             0x0016 { [double]$exifData.GPSDestLongitude = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
+            # Type 2: null-terminated ASCII string
             0x0017 { $exifData.GPSDestBearingRef    = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            # Type 5: array of pairs of unsigned long integers
             0x0018 { [double]$exifData.GPSDestBearing = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
-            # Never seen this Id
+            # Never seen this Id. Microsoft documentation indicates that this is an ASCII string 'K', 'M' or 'N'
             0x0019 { $exifData.GPSDestDistanceRef   = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            # Never seen this Id: Microsoft documentation indicates that this is a pair of unsigned long integers
+            0x001A { [double]$exifData.GPSDestDistance = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
+            # Type 7: array of signed long (32-bit) integers
+            0x001B { 
+                # Extract the GPS Processing Method
+                $exifData.GPSProcessingMethod  = [System.Text.Encoding]::UTF8.GetString($value).Trim([char]0) 
+                }
             # Never seen this Id
-            0x001a { [double]$exifData.GPSDestDistance = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
+            0x001C { $exifData.GPSAreaInformation   = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            # Type 2: null-terminated string
+            0x001D { $exifData.GPSDateStamp         = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             # Never seen this Id
-            0x001b { $exifData.GPSProcessingMethod  = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            # Never seen this Id
-            0x001c { $exifData.GPSAreaInformation   = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            0x001d { $exifData.GPSDateStamp         = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            # Never seen this Id
-            0x001e { $exifData.GPSDifferential      = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-            0x001f { [double]$exifData.GPSHPositioningError = ([System.BitConverter]::ToInt32( $value, 0))  / ([System.BitConverter]::ToInt32( $value, 4)) }
-            # Copilot generated code
-            # 0x001f { $exifData.GPSHPositioningError = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
-
+            0x001E { $exifData.GPSDifferential      = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            # Type 5: array of pairs of unsigned long integers
+            0x001F { [double]$exifData.GPSHPositioningError = ([System.BitConverter]::ToInt32( $value, 0))  / ([System.BitConverter]::ToInt32( $value, 4)) }
 <# 
         Cf. the recent document 
         'Standard Exif Tags' 'These are the Exif tags as defined in the Exif 2.3 standard'
@@ -302,21 +283,9 @@ function Get-ExifData
                 0x1E:	"GPSDifferential"
             }
 #>
-            # Extract other EXIF properties (e.g. altitude if needed)
+            # Extract other EXIF properties
             }
         }
-
-    # Comment at https://stackoverflow.com/questions/59498570/powershell-sorting-hash-table
-    # You fundamentally cannot sort a hash table ([hashtable] instance) by its keys: 
-    # the ordering of keys in a hash table is not guaranteed and cannot be changed.
-
-    # To solve your problem, you need a specialized data type that combines 
-    # the features of a hash table with maintaining the entry keys in sort order
-
-    # We should instead use Ordered Dictionary $hash = [Ordered]@{} Cf. above
-
-    # Ordered dictionaries differ from hash tables in that the keys always appear in 
-    # the order in which you list them. The order of keys in a hash table is not determined.
 
     return $exifData
     }

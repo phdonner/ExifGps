@@ -2,11 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.6] - 2025-02-07
+
+### Minor updates ver. 6.6
+
+- Organize comments and check return values
+- Correct output of GPSLatitude and GPSLongitude zero values
+
 ## [0.6.5] - 2025-02-06
 
 ### Minor update ver. 6.5
 
-- Make slight improvements to CHANGELOG.md
+- Make slight improvements in CHANGELOG.md
 
 ## [0.6.4] - 2025-02-06
 
@@ -14,7 +21,6 @@ All notable changes to this project will be documented in this file.
 
 - Image.GPSTag, GPSProcessingMethod, GPSAreaInformation, GPSDateStamp, GPSDifferential, GPSHPositioningError
 - Move update history to CHANGELOG.md
-
 
 ## [0.6.3] - 2025-02-05
 
@@ -95,5 +101,5 @@ All notable changes to this project will be documented in this file.
 
 ### Create initial version
 
-- Generate initial Copilot code 
+- Generate initial Copilot code
 - Make some manual improvements
