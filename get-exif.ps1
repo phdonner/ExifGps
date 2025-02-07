@@ -1,4 +1,4 @@
-# Get-Exif, version 0.66 07.02.2025
+# Get-Exif, version 0.6.6 07.02.2025
 
 # This is a utility which is used to browse GPS values in the EXIF metadata
 # of JPEG files.
