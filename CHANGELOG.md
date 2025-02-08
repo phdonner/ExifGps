@@ -19,7 +19,7 @@ All notable changes to this project will be documented in this file.
 
 ### Add missing EXIF GPS related IDs ver. 6.4
 
-- Image.GPSTag, GPSProcessingMethod, GPSAreaInformation, GPSDateStamp, GPSDifferential, GPSHPositioningError
+- Add: Image.GPSTag, GPSProcessingMethod, GPSAreaInformation, GPSDateStamp, GPSDifferential, GPSHPositioningError
 - Move update history to CHANGELOG.md
 
 ## [0.6.3] - 2025-02-05
