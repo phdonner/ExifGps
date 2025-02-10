@@ -64,7 +64,7 @@ function Get-ExifData
         return
         }
 
-    Write-Verbose "Retrieved $($propertyItems.Count) EXIF records in $($Path):`n"
+    Write-Verbose "Retrieved EXIF object with $($propertyItems.Count) records in $($Path):`n"
    
     # Initialize the EXIF data object to be returned
     $exifData = [Ordered]@{}
@@ -91,7 +91,7 @@ function Get-ExifData
             0x5090 { $exifData.LuminanceTable = 'n.a.' }
             0x5091 { $exifData.ChrominanceTable = 'n.a.' }
 
-            0x9000 { $exifData.ExifVersion  = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x9000 { $exifData.ExifVersion      = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
            
             # Image section:
             0x010E { $exifData.ImageDescription = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
@@ -146,14 +146,14 @@ function Get-ExifData
                     $exifData.GPSLatitude = @($LatDegrees, $LatMinutes, $LatSeconds)
 
                     # Not an EXIF id. This Conversion was supplied by Copilot. The format is easier to read and use
-                    $exifData.GPSLatitudeDecimal = ConvertToDecimal -coordinate $exifData.GPSLatitude -ref $exifData.GPSLatitudeRef
+                    $GPSLatitudeDecimal = ConvertToDecimal -coordinate $exifData.GPSLatitude -ref $exifData.GPSLatitudeRef
                 
                     # Display the values on the operator's console
-                    Write-Verbose "EXIF GPSLatitude  (d, m, s.s): $($LatDegrees), $($LatMinutes), $($LatSeconds) and GPSLatitudeDecimal (d.nnnn): $($exifData.GPSLATitudeDecimal)"
+                    Write-Verbose "EXIF GPSLatitude  (d, m, s.s): $($LatDegrees), $($LatMinutes), $($LatSeconds) and GPSLatitudeDecimal (d.nnnn): $($GPSLATitudeDecimal)"
                     }
                 }
             # Type 2: null-terminated ASCII string (e.g. 'E')
-            0x0003 { $exifData.GPSLongitudeRef = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
+            0x0003 { $exifData.GPSLongitudeRef  = [System.Text.Encoding]::ASCII.GetString($value).Trim([char]0) }
             # Type 5: array of pairs of unsigned long integers
             0x0004 { 
                 # Extract the GPS Longitude values: degrees, minutes, seconds
@@ -177,10 +177,10 @@ function Get-ExifData
                     $exifData.GPSLongitude = @($LongDegrees, $LongMinutes, $LongSeconds)
 
                     # Not an EXIF id. This Conversion was supplied by Copilot. The format is easier to read and use
-                    $exifData.GPSLongitudeDecimal = ConvertToDecimal -coordinate $exifData.GPSLongitude -ref $exifData.GPSLongitudeRef
+                    $GPSLongitudeDecimal = ConvertToDecimal -coordinate $exifData.GPSLongitude -ref $exifData.GPSLongitudeRef
 
                     # Display the values on the operator's console
-                    Write-Verbose "EXIF GPSLongitude (d, m, s.s): $($LongDegrees), $($LongMinutes), $($LongSeconds) and GPSLongitudeDecimal (d.nnnn): $($exifData.GPSLongitudeDecimal)"
+                    Write-Verbose "EXIF GPSLongitude (d, m, s.s): $($LongDegrees), $($LongMinutes), $($LongSeconds) and GPSLongitudeDecimal (d.nnnn): $($GPSLongitudeDecimal)"
                     }
                 }
             # Type 1: array of bytes (e.g. 0)
@@ -230,7 +230,7 @@ function Get-ExifData
             0x001A { [double]$exifData.GPSDestDistance = (([System.BitConverter]::ToInt32( $value, 0)) / ([System.BitConverter]::ToInt32($value, 4))) }
             # Type 7: array of signed long (32-bit) integers
             0x001B { 
-                # Extract the GPS Processing Method
+                # Extract the GPS Processing Method (e.g. 'GPS')
                 $exifData.GPSProcessingMethod  = [System.Text.Encoding]::UTF8.GetString($value).Trim([char]0) 
                 }
             # Never seen this Id
@@ -290,7 +290,7 @@ function Get-ExifData
     return $exifData
     }
 
-# A function to allow Windows users to select a file
+# A function to allow Windows users to select a file  in a GUI dialog
 Function Get-File
     {
     [CmdletBinding()]

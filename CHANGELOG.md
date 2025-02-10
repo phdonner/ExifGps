@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.7] - 2025-02-10
+
+### Updates ver. 6.7
+
+- Exclude decimal conversions from return object
+- Check all GPS parameter nemes from Exif standard 3.0
+
 ## [0.6.6] - 2025-02-07
 
 ### Minor updates ver. 6.6
